@@ -51,7 +51,6 @@ angular.module('listings').controller('ListingsController', ['$scope', '$locatio
        */
       if (!isValid) {
         $scope.$broadcast('show-errors-check-validity', 'articleForm');
-
         return false;
       }
 
@@ -63,8 +62,7 @@ angular.module('listings').controller('ListingsController', ['$scope', '$locatio
       };
 
       /* Save the article using the Listings factory */
-      Listings.create(listing)
-              .then(function(response) {
+      Listings.create(listing).then(function(response) {
                 //if the object is successfully saved redirect back to the list page
                 $state.go('listings.list', { successMessage: 'Listing succesfully created!' });
               }, function(error) {
@@ -79,13 +77,41 @@ angular.module('listings').controller('ListingsController', ['$scope', '$locatio
         successfully finished, navigate back to the 'listing.list' state using $state.go(). If an error 
         occurs, pass it to $scope.error. 
        */
-    };
+
+        Listings.read($stateParams.listingId).then(function(response) {
+          $scope.listing = response.data;}, function(error) {  
+            $scope.error = 'Unable to retrieve listing with id "' + $stateParams.listingId + '"\n' + error;
+        });
+
+        if (!isValid) {
+          $scope.$broadcast('show-errors-check-validity', 'articleForm');
+          return false;
+        }
+        
+        $scope.error = null;
+        
+        Listings.update($stateParams.listingId, $scope.listing)
+        .then(function(response) {
+          $scope.listing = response.data;
+          $state.go('listings.list', { successMessage: 'Listing succesfully updated!' });
+        }, function(error) {  
+          $scope.error = 'Unable to update listing!\n' + error;
+        });
+      };
 
     $scope.remove = function() {
       /*
         Implement the remove function. If the removal is successful, navigate back to 'listing.list'. Otherwise, 
         display the error. 
        */
+
+      $scope.error = null;
+      
+      Listings.delete($stateParams.listingId).then(function(response) {
+        $state.go('listings.list', { successMessage: 'Listing succesfully deleted!' }) ;
+      }, function(error) {
+        $scope.error = 'Unable to delete listing!\n' + error ;
+      }) ;
     };
 
     /* Bind the success message to the scope if it exists as part of the current state */
@@ -101,5 +127,6 @@ angular.module('listings').controller('ListingsController', ['$scope', '$locatio
       }, 
       zoom: 14
     }
+
   }
 ]);
