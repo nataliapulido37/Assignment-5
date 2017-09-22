@@ -1,4 +1,4 @@
-var config = require('./config'), 
+var config = require('process.env.URI'), 
     mongoose = require('mongoose'),   
     express = require('./express');
 
